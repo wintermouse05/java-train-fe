@@ -1,0 +1,74 @@
+html, body, #app {
+  height: 100%;
+}
+
+#app {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+a, .green {
+  text-decoration: none;
+  color: #22b8a7;
+  transition: color 0.2s ease, background-color 0.2s ease;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: rgba(34, 184, 167, 0.15);
+  }
+}
+
+input, button, .p-inputtext, .p-inputnumber, .p-calendar, .p-button {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid rgba(34, 184, 167, 0.45);
+  outline-offset: 2px;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+h2 {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+h3 {
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.p-button:disabled, .p-button.p-disabled, button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: saturate(0.85);
+}
+
+.text-muted {
+  color: #6b7280;
+}
+
+.section {
+  padding: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+}
