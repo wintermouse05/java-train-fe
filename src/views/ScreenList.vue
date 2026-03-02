@@ -5,8 +5,8 @@
       <div class="logo">
         <i class="pi pi-building logo-icon"></i>
         <div class="school-info">
-          <div class="school-name">Trường Đại Học Bách Khoa</div>
-          <div class="school-subtitle">Hanoi University of Science and Technology</div>
+          <div class="school-name">Trường Đại Học Khoa Học Tự Nhiên</div>
+          <div class="school-subtitle">University of Science</div>
         </div>
       </div>
       <div class="spacer"></div>
@@ -20,90 +20,65 @@
       <div class="toolbar">
         <!-- Student count card -->
         <div class="student-card">
-          <div class="card-header">Total Students</div>
-          <div class="card-count">{{ originalRows.length }}</div>
+          <div class="card-header">
+            <h3 class="card-title">Total Students</h3>
+          </div>
+          <div class="card-content">
+            <div class="progress-section">
+              <div class="progress-circle">
+                <div class="progress-text">{{ originalRows.length }}</div>
+              </div>
+            </div>
+            <div class="illustration-section">
+              <i class="pi pi-users illustration-icon"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search filters -->
+        <div class="toolbar-filters">
+          <div class="row row-name">
+            <InputText v-model.trim="filters.name" :maxlength="50" @keydown.space.prevent placeholder="Student name" />
+          </div>
+          <div class="row row-inline">
+            <InputText v-model.trim="filters.code" :maxlength="10" @keydown.space.prevent placeholder="Student code" />
+            <Calendar v-model="filters.birthday" dateFormat="mm/dd/yy" showIcon placeholder="Select date" />
+          </div>
         </div>
 
         <!-- Actions -->
         <div class="toolbar-actions">
-          <Button
-            label="Clear"
-            icon="pi pi-filter-slash"
-            class="p-button-outlined"
-            @click="clearFilters"
-          />
-          <Button
-            label="Add Student"
-            icon="pi pi-plus"
-            class="p-button-success"
-            @click="onAdd"
-          />
+          <Button label="Search" icon="pi pi-search" class="p-button-info" @click="onSearch" />
+          <Button label="Add Student" icon="pi pi-plus" class="p-button-success" @click="onAdd" />
         </div>
       </div>
 
       <!-- Data table -->
       <div class="table-wrapper">
         <DataTable
-          v-model:filters="filters"
-          :value="originalRows"
+          :value="pagedRows"
           paginator
-          :rows="rowsPerPage"
+          :rows="10"
           stripedRows
-          removableSort
-          filterDisplay="row"
+          :totalRecords="isSearching ? searchResults.length : originalRows.length"
           :first="first"
           @page="onPage"
           paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
           :rowsPerPageOptions="[5, 10, 20]"
           class="p-datatable-sm"
           :loading="loading"
-          :globalFilterFields="['code', 'name', 'address']"
         >
-          <template #header>
-            <div class="flex justify-end">
-              <IconField>
-                <InputIcon>
-                  <i class="pi pi-search" />
-                </InputIcon>
-                <InputText v-model="filters['global'].value" placeholder="Keyword Search" />
-              </IconField>
-            </div>
-          </template>
-
-          <Column field="no" header="No" style="width: 5%">
+          <Column field="no" header="No" sortable style="width: 5%">
             <template #body="slotProps">
               {{ first + slotProps.index + 1 }}
             </template>
           </Column>
-          <Column field="code" header="Code" sortable style="width: 15%">
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by code" />
-            </template>
-          </Column>
-          <Column field="name" header="Name" sortable style="width: 20%">
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by name" />
-            </template>
-          </Column>
-          <Column field="birthday" header="Birthday" sortable dataType="date" style="width: 15%">
-            <template #body="{ data }">
-              {{ formatDate(data.birthday) }}
-            </template>
-            <template #filter="{ filterModel, filterCallback }">
-              <DatePicker v-model="filterModel.value" dateFormat="mm/dd/yy" placeholder="mm/dd/yyyy" @date-select="filterCallback()" />
-            </template>
-          </Column>
-          <Column field="address" header="Address" sortable style="width: 25%">
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Search by address" />
-            </template>
-          </Column>
-          <Column field="score" header="Score" sortable dataType="numeric" style="width: 10%">
-            <template #filter="{ filterModel, filterCallback }">
-              <InputNumber v-model="filterModel.value" @input="filterCallback()" placeholder="Score" :maxFractionDigits="2" />
-            </template>
-          </Column>
-          <Column header="Edit" style="width: 10%; text-align: center">
+          <Column field="code" header="Code" sortable style="width: 15%"></Column>
+          <Column field="name" header="Name" sortable style="width: 20%"></Column>
+          <Column field="birthday" header="Birthday" sortable style="width: 15%"></Column>
+          <Column field="address" header="Address" style="width: 25%"></Column>
+          <Column field="score" header="Score" sortable style="width: 10%"></Column>
+          <Column header="Actions" style="width: 10%; text-align: center">
             <template #body="slotProps">
               <div class="actions">
                 <Button
@@ -129,15 +104,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
-import DatePicker from 'primevue/datepicker'
-import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
+import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -155,62 +127,60 @@ const auth = useAuth()
 const userName = computed(() => auth.user || 'NguyenVanA')
 
 const loading = ref(false)
+const error = ref(null)
+
+const filters = reactive({ code: '', name: '', birthday: null })
+
 const originalRows = ref([])
+const searchResults = ref([])
+const isSearching = ref(false)
+
 const first = ref(0)
 const rowsPerPage = ref(10)
-
-const initFilters = () => ({
-  global: { value: null, matchMode: 'contains' },
-  code: { value: null, matchMode: 'contains' },
-  name: { value: null, matchMode: 'contains' },
-  birthday: { value: null, matchMode: 'dateIs' },
-  address: { value: null, matchMode: 'contains' },
-  score: { value: null, matchMode: 'equals' },
-})
-
-const filters = ref(initFilters())
-
-const clearFilters = () => {
-  filters.value = initFilters()
-}
 
 const transformStudentData = (apiData) => {
   return apiData.map((student) => ({
     id: student.studentId,
     code: student.studentCode,
     name: student.studentName,
-    birthday: student.dateOfBirth ? new Date(student.dateOfBirth) : null,
+    birthday: formatDate(student.dateOfBirth),
     address: student.address,
     score: student.averageScore,
   }))
 }
 
-const formatDate = (date) => {
-  if (!date) return ''
-  if (!(date instanceof Date)) date = new Date(date)
-  return `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getDate()).padStart(2, '0')}/${date.getFullYear()}`
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${month}/${day}/${year}`
 }
 
+const pagedRows = computed(() => {
+  const dataToShow = isSearching.value ? searchResults.value : originalRows.value
+  return dataToShow.slice(first.value, first.value + rowsPerPage.value)
+})
+
 const loadStudents = async () => {
-  loading.value = true
   try {
+    loading.value = true
+    error.value = null
     const response = await getStudents()
-    if (response.status === 200) {
-      originalRows.value = transformStudentData(response.data)
+    if (response.status === 200 && response.data) {
+      const transformedData = transformStudentData(response.data)
+      originalRows.value = transformedData
+      onClearFilters()
     } else {
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: response.message || 'Failed to load students',
-        life: 3000,
-      })
+      throw new Error(response.message || 'Could not load student data')
     }
-  } catch (error) {
-    console.error('Error loading students:', error)
+  } catch (err) {
+    error.value = err.message
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: 'Failed to load students',
+      detail: err.message || 'An error occurred while loading data',
       life: 3000,
     })
   } finally {
@@ -225,6 +195,58 @@ function onPage(event) {
   rowsPerPage.value = event.rows
 }
 
+function onClearFilters() {
+  filters.code = ''
+  filters.name = ''
+  filters.birthday = null
+  searchResults.value = []
+  isSearching.value = false
+  first.value = 0
+  toast.add({
+    severity: 'info',
+    summary: 'Cleared',
+    detail: 'Search filters have been cleared',
+    life: 2000,
+  })
+}
+
+function onSearch() {
+  first.value = 0
+  let filtered = [...originalRows.value]
+  if (filters.code) {
+    filtered = filtered.filter((row) =>
+      row.code.toLowerCase().includes(filters.code.toLowerCase())
+    )
+  }
+  if (filters.name) {
+    filtered = filtered.filter((row) =>
+      row.name.toLowerCase().includes(filters.name.toLowerCase())
+    )
+  }
+  if (filters.birthday) {
+    const targetDate = formatDate(filters.birthday)
+    filtered = filtered.filter((row) => row.birthday === targetDate)
+  }
+  searchResults.value = filtered
+  isSearching.value = true
+  const resultCount = searchResults.value.length
+  if (resultCount === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'No Results',
+      detail: 'No students match your search criteria',
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'success',
+      summary: 'Search Complete',
+      detail: `Found ${resultCount} matching student(s)`,
+      life: 2000,
+    })
+  }
+}
+
 function onAdd() {
   router.push('/student')
 }
@@ -235,36 +257,34 @@ function onEdit(row) {
 
 function onDelete(row) {
   confirm.require({
-    message: `Are you sure you want to delete student "${row.name}"?`,
-    header: 'Confirm Delete',
+    message: `Are you sure you want to delete student ${row.code} - ${row.name}?`,
+    header: 'Delete Confirmation',
     icon: 'pi pi-exclamation-triangle',
     acceptClass: 'p-button-danger',
     accept: async () => {
       try {
+        loading.value = true
         const response = await deleteStudent(row.id)
         if (response.status === 200) {
+          await loadStudents()
           toast.add({
             severity: 'success',
             summary: 'Success',
-            detail: 'Student deleted successfully',
-            life: 3000,
+            detail: response.message || 'Student deleted successfully',
+            life: 2000,
           })
-          await loadStudents()
         } else {
-          toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: response.message || 'Failed to delete student',
-            life: 3000,
-          })
+          throw new Error(response.message || 'Could not delete student')
         }
-      } catch (error) {
+      } catch (err) {
         toast.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Failed to delete student',
+          detail: err.message || 'An error occurred while deleting the student',
           life: 3000,
         })
+      } finally {
+        loading.value = false
       }
     },
   })

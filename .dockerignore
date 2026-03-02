@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+npm-debug.log*
+
+# Build output
+dist
+storybook-static
+
+# Version control
+.git
+.gitignore
+
+# IDE / Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Docker files (không cần copy vào image)
+Dockerfile
+Dockerfile.dev
+docker-compose*.yml
+.dockerignore
+
+# Scripts & docs
+*.sh
+*.md
+
+# Storybook config
+.storybook
+
+# Environment
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
