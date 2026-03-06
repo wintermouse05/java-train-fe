@@ -5,8 +5,8 @@
       <div class="logo">
         <i class="pi pi-building logo-icon"></i>
         <div class="school-info">
-          <div class="school-name">Trường Đại Học Bách Khoa</div>
-          <div class="school-subtitle">Hanoi University of Science and Technology</div>
+          <div class="school-name">Trường Đại Học Khoa Học Tự Nhiên</div>
+          <div class="school-subtitle">University of Science</div>
         </div>
       </div>
       <div class="spacer"></div>
