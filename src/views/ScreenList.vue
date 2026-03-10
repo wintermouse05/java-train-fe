@@ -168,6 +168,11 @@ const loadStudents = async () => {
     loading.value = true
     error.value = null
     const response = await getStudents()
+    if (response.status === 401) {
+      auth.logout()
+      router.push('/login')
+      return
+    }
     if (response.status === 200 && response.data) {
       const transformedData = transformStudentData(response.data)
       originalRows.value = transformedData
@@ -265,6 +270,11 @@ function onDelete(row) {
       try {
         loading.value = true
         const response = await deleteStudent(row.id)
+        if (response.status === 401) {
+          auth.logout()
+          router.push('/login')
+          return
+        }
         if (response.status === 200) {
           await loadStudents()
           toast.add({

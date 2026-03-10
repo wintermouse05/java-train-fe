@@ -3,6 +3,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 // Set to true to use mock data (no backend needed), false to call real API
 const USE_MOCK = false
 
+import { refreshToken } from '@/service/auth.js'
+
 let mockNextId = 4
 const mockStudents = [
   {
@@ -40,6 +42,27 @@ const getAuthHeaders = () => {
   }
 }
 
+/**
+ * Fetch wrapper: khi gặp 401, tự gọi refresh token rồi retry 1 lần.
+ * Nếu refresh thất bại, trả về status 401 để UI xử lý redirect.
+ */
+const authFetch = async (url, options = {}) => {
+  let response = await fetch(url, { ...options, headers: getAuthHeaders() })
+
+  if (response.status === 401) {
+    const refreshed = await refreshToken()
+    if (refreshed) {
+      response = await fetch(url, { ...options, headers: getAuthHeaders() })
+    }
+    if (response.status === 401) {
+      return { status: 401, message: 'Phiên đăng nhập hết hạn, vui lòng đăng nhập lại' }
+    }
+  }
+
+  const data = await response.json()
+  return data
+}
+
 export const getStudents = async () => {
   if (USE_MOCK) {
     await new Promise((r) => setTimeout(r, 300))
@@ -47,12 +70,7 @@ export const getStudents = async () => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/students`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    })
-    const data = await response.json()
-    return data
+    return await authFetch(`${API_BASE_URL}/students`, { method: 'GET' })
   } catch (error) {
     console.error('Lỗi khi gọi API getStudents:', error)
     throw error
@@ -68,12 +86,7 @@ export const getStudentById = async (studentId) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/students/${studentId}`, {
-      method: 'GET',
-      headers: getAuthHeaders(),
-    })
-    const data = await response.json()
-    return data
+    return await authFetch(`${API_BASE_URL}/students/${studentId}`, { method: 'GET' })
   } catch (error) {
     console.error('Lỗi khi gọi API getStudentById:', error)
     throw error
@@ -89,13 +102,10 @@ export const createStudent = async (studentData) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/students`, {
+    return await authFetch(`${API_BASE_URL}/students`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify(studentData),
     })
-    const data = await response.json()
-    return data
   } catch (error) {
     console.error('Lỗi khi gọi API createStudent:', error)
     throw error
@@ -114,13 +124,10 @@ export const updateStudent = async (studentId, studentData) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/students/${studentId}`, {
+    return await authFetch(`${API_BASE_URL}/students/${studentId}`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
       body: JSON.stringify(studentData),
     })
-    const data = await response.json()
-    return data
   } catch (error) {
     console.error('Lỗi khi gọi API updateStudent:', error)
     throw error
@@ -139,12 +146,7 @@ export const deleteStudent = async (studentId) => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/students/${studentId}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    })
-    const data = await response.json()
-    return data
+    return await authFetch(`${API_BASE_URL}/students/${studentId}`, { method: 'DELETE' })
   } catch (error) {
     console.error('Lỗi khi gọi API deleteStudent:', error)
     throw error

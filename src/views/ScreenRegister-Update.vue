@@ -157,6 +157,11 @@ onMounted(() => {
 const fetchStudent = async () => {
   try {
     const response = await getStudentById(route.params.id)
+    if (response.status === 401) {
+      auth.logout()
+      router.push('/login')
+      return
+    }
     if (response.status === 200) {
       const s = response.data
       model.id = s.studentId
@@ -187,6 +192,11 @@ const doCreate = async () => {
       averageScore: model.score,
     }
     const response = await createStudent(studentData)
+    if (response.status === 401) {
+      auth.logout()
+      router.push('/login')
+      return
+    }
     if (response.status === 200) {
       toast.add({
         severity: 'success',
@@ -217,6 +227,11 @@ const doUpdate = async () => {
       averageScore: model.score,
     }
     const response = await updateStudent(route.params.id, studentData)
+    if (response.status === 401) {
+      auth.logout()
+      router.push('/login')
+      return
+    }
     if (response.status === 200) {
       toast.add({
         severity: 'success',

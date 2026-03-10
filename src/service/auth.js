@@ -35,6 +35,9 @@ export const login = async (userName, password) => {
       },
       body: JSON.stringify({ userName, password }),
     })
+    if (!response.ok && response.status !== 400) {
+      return { status: response.status, message: 'Lỗi kết nối server' }
+    }
     const data = await response.json()
     return data
   } catch (error) {
@@ -67,10 +70,38 @@ export const register = async (registerData) => {
       },
       body: JSON.stringify(registerData),
     })
+    if (!response.ok && response.status !== 400) {
+      return { status: response.status, message: 'Lỗi kết nối server' }
+    }
     const data = await response.json()
     return data
   } catch (error) {
     console.error('Lỗi khi gọi API register:', error)
     throw error
+  }
+}
+
+export const refreshToken = async () => {
+  const USER = localStorage.getItem('user') || ''
+  const TOKEN = USER ? JSON.parse(USER).token : ''
+  if (!TOKEN) return null
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${TOKEN}`,
+      },
+    })
+    if (!response.ok) return null
+    const data = await response.json()
+    if (data.status === 200 && data.data) {
+      localStorage.setItem('user', JSON.stringify(data.data))
+      return data.data
+    }
+    return null
+  } catch {
+    return null
   }
 }
