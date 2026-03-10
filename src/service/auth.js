@@ -1,7 +1,7 @@
-const API_BASE_URL = 'http://localhost:8080/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 // Set to true to use mock data (no backend needed), false to call real API
-const USE_MOCK = true
+const USE_MOCK = false
 
 // Mock user database stored in memory
 const mockUsers = [

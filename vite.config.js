@@ -24,5 +24,11 @@ export default defineConfig({
     watch: {
       usePolling: true,
     },
+    proxy: {
+      '/api': {
+        target: 'http://host.docker.internal:8080',
+        changeOrigin: true,
+      },
+    },
   },
 })
